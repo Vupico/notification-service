@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: notification-service
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    virtual-host: ${RABBITMQ_VHOST:/}
+    listener:
+      simple:
+        default-requeue-rejected: false
+
+notification:
+  rabbit:
+    topic-exchange: ${NOTIFICATION_TOPIC_EXCHANGE:notifications.topic}
+    queue: ${NOTIFICATION_WORKER_QUEUE:notifications.worker.queue}
+    routing-key-pattern: ${NOTIFICATION_ROUTING_PATTERN:ticket.#}
+    listener:
+      concurrency: ${NOTIFICATION_LISTENER_CONCURRENCY:1-3}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+logging:
+  level:
+    com.vupico.notification: INFO
