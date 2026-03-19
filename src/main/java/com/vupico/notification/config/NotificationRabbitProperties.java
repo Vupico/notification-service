@@ -20,6 +20,18 @@ public class NotificationRabbitProperties {
     @NotBlank
     private String routingKeyPattern = "ticket.#";
 
+    @NotBlank
+    private String retryQueue = "notifications.worker.retry.queue";
+
+    @NotBlank
+    private String dlqExchange = "notifications.worker.dlx";
+
+    @NotBlank
+    private String dlqQueue = "notifications.worker.dlq";
+
+    @NotBlank
+    private String dlqRoutingKey = "notifications.worker.dlq";
+
     public String getTopicExchange() {
         return topicExchange;
     }
@@ -42,5 +54,37 @@ public class NotificationRabbitProperties {
 
     public void setRoutingKeyPattern(String routingKeyPattern) {
         this.routingKeyPattern = routingKeyPattern;
+    }
+
+    public String getRetryQueue() {
+        return retryQueue;
+    }
+
+    public void setRetryQueue(String retryQueue) {
+        this.retryQueue = retryQueue;
+    }
+
+    public String getDlqExchange() {
+        return dlqExchange;
+    }
+
+    public void setDlqExchange(String dlqExchange) {
+        this.dlqExchange = dlqExchange;
+    }
+
+    public String getDlqQueue() {
+        return dlqQueue;
+    }
+
+    public void setDlqQueue(String dlqQueue) {
+        this.dlqQueue = dlqQueue;
+    }
+
+    public String getDlqRoutingKey() {
+        return dlqRoutingKey;
+    }
+
+    public void setDlqRoutingKey(String dlqRoutingKey) {
+        this.dlqRoutingKey = dlqRoutingKey;
     }
 }

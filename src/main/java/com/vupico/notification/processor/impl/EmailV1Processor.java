@@ -6,6 +6,7 @@ import com.vupico.notification.dto.NotificationMessage;
 import com.vupico.notification.dto.NotificationMessageTypes;
 import com.vupico.notification.processor.NotificationProcessor;
 import com.vupico.notification.service.EmailSender;
+import com.vupico.notification.service.RenderedTemplate;
 import com.vupico.notification.service.TemplateService;
 import org.springframework.stereotype.Component;
 
@@ -46,9 +47,10 @@ public class EmailV1Processor implements NotificationProcessor {
                     "EmailV1Processor only supports message_type=%s, got %s"
                             .formatted(NotificationMessageTypes.DEFECT_LOGGED, message.getMessageType()));
         }
-        String body =
-                templateService.render(message.getTenantId(), message.getMessageType(), payload);
-        String subject = "Defect Logged";
+        RenderedTemplate rendered =
+                templateService.renderEmail(message.getTenantId(), message.getMessageType(), payload);
+        String subject = rendered.getSubject();
+        String body = rendered.getBody();
         for (String email : message.getAddressList()) {
             emailSender.send(message.getTenantId(), email, subject, body);
         }

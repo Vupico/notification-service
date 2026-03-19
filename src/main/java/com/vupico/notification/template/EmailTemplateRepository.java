@@ -1,0 +1,11 @@
+package com.vupico.notification.template;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface EmailTemplateRepository extends JpaRepository<EmailTemplateEntity, Long> {
+
+    Optional<EmailTemplateEntity> findByTenantIdAndTemplateName(String tenantId, String templateName);
+}
+
