@@ -51,8 +51,6 @@ public class EmailV1Processor implements NotificationProcessor {
                 templateService.renderEmail(message.getTenantId(), message.getMessageType(), payload);
         String subject = rendered.getSubject();
         String body = rendered.getBody();
-        for (String email : message.getAddressList()) {
-            emailSender.send(message.getTenantId(), email, subject, body);
-        }
+        emailSender.sendBatch(message.getTenantId(), message.getAddressList(), subject, body);
     }
 }

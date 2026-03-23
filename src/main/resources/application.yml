@@ -48,3 +48,11 @@ management:
 logging:
   level:
     com.vupico.notification: INFO
+
+# Amazon SES v2 — set enabled=true and from-email in real environments
+aws:
+  ses:
+    enabled: ${AWS_SES_ENABLED:false}
+    region: ${AWS_SES_REGION:us-east-1}
+    from-email: ${AWS_SES_FROM_EMAIL:}
+    bulk-max-entries: ${AWS_SES_BULK_MAX_ENTRIES:50}

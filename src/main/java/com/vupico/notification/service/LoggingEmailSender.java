@@ -4,31 +4,33 @@ import com.vupico.notification.tenant.TenantConfigurationEntity;
 import com.vupico.notification.tenant.TenantConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.List;
 
 /**
- * Logs outbound email until SES (or another provider) is integrated.
+ * Logs outbound email when SES is disabled ({@code aws.ses.enabled=false}).
  */
 @Service
+@ConditionalOnProperty(prefix = "aws.ses", name = "enabled", havingValue = "false", matchIfMissing = true)
 public class LoggingEmailSender implements EmailSender {
 
     private static final Logger log = LoggerFactory.getLogger(LoggingEmailSender.class);
 
     private final TenantConfigurationService tenantConfigurationService;
-    private final ConcurrentMap<String, RateLimitState> rateLimits = new ConcurrentHashMap<>();
+    private final TenantEmailThrottle tenantEmailThrottle;
 
-    public LoggingEmailSender(TenantConfigurationService tenantConfigurationService) {
+    public LoggingEmailSender(
+            TenantConfigurationService tenantConfigurationService, TenantEmailThrottle tenantEmailThrottle) {
         this.tenantConfigurationService = tenantConfigurationService;
+        this.tenantEmailThrottle = tenantEmailThrottle;
     }
 
     @Override
     public void send(String tenantId, String to, String subject, String body) {
+        tenantEmailThrottle.beforeSend(tenantId, 1);
         TenantConfigurationEntity cfg = tenantConfigurationService.require(tenantId);
-        throttle(tenantId, cfg.getEmailRateLimit());
-
         log.info(
                 "EMAIL host={} tenant={} to={} subject={} bodyChars={}",
                 cfg.getEmailHost(),
@@ -39,30 +41,21 @@ public class LoggingEmailSender implements EmailSender {
         log.debug("EMAIL body:\n{}", body);
     }
 
-    private void throttle(String tenantId, Integer perSecond) {
-        if (perSecond == null || perSecond <= 0) {
+    @Override
+    public void sendBatch(String tenantId, List<String> addresses, String subject, String body) {
+        if (addresses == null || addresses.isEmpty()) {
             return;
         }
-        long intervalNanos = 1_000_000_000L / Math.max(1, perSecond);
-        RateLimitState state = rateLimits.computeIfAbsent(tenantId, t -> new RateLimitState());
-        long sleepNanos;
-        synchronized (state) {
-            long now = System.nanoTime();
-            long next = Math.max(state.nextAllowedNanos, now);
-            state.nextAllowedNanos = next + intervalNanos;
-            sleepNanos = next - now;
-        }
-        if (sleepNanos > 0) {
-            try {
-                Thread.sleep(sleepNanos / 1_000_000L, (int) (sleepNanos % 1_000_000L));
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-            }
-        }
-    }
-
-    private static final class RateLimitState {
-        private long nextAllowedNanos;
+        tenantEmailThrottle.beforeSend(tenantId, addresses.size());
+        TenantConfigurationEntity cfg = tenantConfigurationService.require(tenantId);
+        log.info(
+                "EMAIL BATCH host={} tenant={} recipients={} subject={} bodyChars={}",
+                cfg.getEmailHost(),
+                tenantId,
+                addresses.size(),
+                subject,
+                body.length());
+        log.debug("EMAIL body:\n{}", body);
     }
 }
 
