@@ -12,25 +12,25 @@ import org.springframework.validation.annotation.Validated;
 public class NotificationRabbitProperties {
 
     @NotBlank
-    private String topicExchange = "notifications.topic";
+    private String topicExchange;
 
     @NotBlank
-    private String queue = "notifications.worker.queue";
+    private String queue;
 
     @NotBlank
-    private String routingKeyPattern = "ticket.#";
+    private String routingKeyPattern;
 
     @NotBlank
-    private String retryQueue = "notifications.worker.retry.queue";
+    private String retryQueue;
 
     @NotBlank
-    private String dlqExchange = "notifications.worker.dlx";
+    private String dlqExchange;
 
     @NotBlank
-    private String dlqQueue = "notifications.worker.dlq";
+    private String dlqQueue;
 
     @NotBlank
-    private String dlqRoutingKey = "notifications.worker.dlq";
+    private String dlqRoutingKey;
 
     public String getTopicExchange() {
         return topicExchange;

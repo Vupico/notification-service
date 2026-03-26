@@ -1,50 +1,35 @@
 package com.vupico.notification.template;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 
-@Entity
-@Table(
-        name = "email_template",
-        indexes = {
-            @Index(name = "ux_email_template_tenant_name", columnList = "tenant_id,template_name", unique = true)
-        })
+@Document(collection = "email_template")
+@CompoundIndex(name = "ux_email_template_tenant_name", def = "{'tenantId': 1, 'templateName': 1}", unique = true)
 public class EmailTemplateEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(name = "tenant_id", nullable = false, length = 255)
     private String tenantId;
 
-    @Column(name = "template_name", nullable = false, length = 255)
     private String templateName;
 
-    @Column(name = "subject", nullable = false, columnDefinition = "TEXT")
     private String subject;
 
-    @Column(name = "body", nullable = false, columnDefinition = "TEXT")
     private String body;
 
-    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
