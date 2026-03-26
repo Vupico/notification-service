@@ -1,28 +1,20 @@
 package com.vupico.notification.tenant;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name = "tenant_configuration")
+@Document(collection = "tenant_configuration")
 public class TenantConfigurationEntity {
 
     @Id
-    @Column(name = "tenant_id", nullable = false, length = 255)
     private String tenantId;
 
-    @Column(name = "email_host", length = 100)
     private String emailHost;
 
-    @Column(name = "email_rate_limit")
     private Integer emailRateLimit;
 
-    @Column(name = "retry_count")
     private Integer retryCount;
 
-    @Column(name = "retry_interval")
     private Integer retryInterval;
 
     public String getTenantId() {
