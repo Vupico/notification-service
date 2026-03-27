@@ -76,7 +76,10 @@ public class SesEmailSender implements EmailSender {
                 .text(html ? plainTextFallback(body) : body)
                 .build();
 
-        Template template = Template.builder().templateContent(templateContent).build();
+        Template template = Template.builder()
+                .templateContent(templateContent)
+                .templateData("{}")
+                .build();
         BulkEmailContent defaultContent = BulkEmailContent.builder().template(template).build();
 
         int max = Math.max(1, Math.min(50, sesProperties.getBulkMaxEntries()));
