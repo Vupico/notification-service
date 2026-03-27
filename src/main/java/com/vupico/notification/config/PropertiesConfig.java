@@ -4,6 +4,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties({AwsSesProperties.class, NotificationRabbitProperties.class})
+@EnableConfigurationProperties({NotificationRabbitProperties.class})
 public class PropertiesConfig {}
 
