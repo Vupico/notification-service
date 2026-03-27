@@ -2,5 +2,10 @@ package com.vupico.notification.tenant;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface TenantConfigurationRepository extends MongoRepository<TenantConfigurationEntity, String> {}
+import java.util.Optional;
+
+public interface TenantConfigurationRepository extends MongoRepository<TenantConfigurationEntity, String> {
+
+    Optional<TenantConfigurationEntity> findByTenantId(String tenantId);
+}
 

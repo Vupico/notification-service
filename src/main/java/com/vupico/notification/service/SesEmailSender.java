@@ -5,9 +5,10 @@ import com.vupico.notification.tenant.TenantConfigurationEntity;
 import com.vupico.notification.tenant.TenantConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sesv2.SesV2Client;
 import software.amazon.awssdk.services.sesv2.model.BulkEmailContent;
 import software.amazon.awssdk.services.sesv2.model.BulkEmailEntry;
@@ -28,7 +29,6 @@ import java.util.stream.Collectors;
  * recipients (default max 50), respecting tenant {@code email_rate_limit}.
  */
 @Service
-@ConditionalOnProperty(prefix = "aws.ses", name = "enabled", havingValue = "true")
 public class SesEmailSender implements EmailSender {
 
     private static final Logger log = LoggerFactory.getLogger(SesEmailSender.class);
@@ -39,14 +39,16 @@ public class SesEmailSender implements EmailSender {
     private final TenantEmailThrottle tenantEmailThrottle;
 
     public SesEmailSender(
-            SesV2Client sesV2Client,
             AwsSesProperties sesProperties,
             TenantConfigurationService tenantConfigurationService,
             TenantEmailThrottle tenantEmailThrottle) {
-        this.sesV2Client = sesV2Client;
         this.sesProperties = sesProperties;
         this.tenantConfigurationService = tenantConfigurationService;
         this.tenantEmailThrottle = tenantEmailThrottle;
+        this.sesV2Client = SesV2Client.builder()
+                .region(Region.of(sesProperties.getRegion()))
+                .credentialsProvider(DefaultCredentialsProvider.create())
+                .build();
     }
 
     @Override

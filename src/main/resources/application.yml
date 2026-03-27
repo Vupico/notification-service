@@ -30,20 +30,10 @@ notification:
       concurrency: ${NOTIFICATION_LISTENER_CONCURRENCY:1-3}
       batch-size: ${NOTIFICATION_BATCH_SIZE:100}
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      show-details: when_authorized
-
 logging:
   level:
     com.vupico.notification: INFO
 
-# Amazon SES v2 — set enabled=true and from-email in real environments
 aws:
   ses:
     region: ${AWS_SES_REGION:us-east-1}
