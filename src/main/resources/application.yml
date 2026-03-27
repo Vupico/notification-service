@@ -19,6 +19,8 @@ spring:
 
 notification:
   rabbit:
+    # true = drain worker queue once and exit (Kubernetes CronJob). false = long-running listener.
+    cron-mode: ${NOTIFICATION_CRON_MODE:true}
     topic-exchange: ${NOTIFICATION_TOPIC_EXCHANGE:notifications.topic}
     queue: ${NOTIFICATION_WORKER_QUEUE:notifications.worker.queue}
     routing-key-pattern: ${NOTIFICATION_ROUTING_PATTERN:ticket.#}
