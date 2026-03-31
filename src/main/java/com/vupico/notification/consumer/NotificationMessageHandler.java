@@ -9,6 +9,7 @@ import com.vupico.notification.dto.NotificationMessage;
 import com.vupico.notification.processor.NotificationProcessor;
 import com.vupico.notification.processor.NotificationProcessorRegistry;
 import com.vupico.notification.processor.UnsupportedNotificationProcessorException;
+import com.vupico.notification.service.FailureHttpStatus;
 import com.vupico.notification.tenant.TenantConfigurationEntity;
 import com.vupico.notification.tenant.TenantConfigurationService;
 import org.slf4j.Logger;
@@ -125,7 +126,7 @@ public class NotificationMessageHandler {
         int currentRetries = getRetryCount(raw);
 
         if (currentRetries >= maxRetries) {
-            sendToDlq(raw, "retry attempts exceeded: " + error.getClass().getSimpleName());
+            sendToDlq(raw, "retry attempts exceeded: " + error.getClass().getSimpleName(), error);
             return true;
         }
 
@@ -167,11 +168,21 @@ public class NotificationMessageHandler {
     }
 
     private void sendToDlq(Message raw, String reason) {
+        sendToDlq(raw, reason, null);
+    }
+
+    private void sendToDlq(Message raw, String reason, Throwable error) {
         MessageProperties props = new MessageProperties();
         props.setContentType(raw.getMessageProperties().getContentType());
         props.setContentEncoding(raw.getMessageProperties().getContentEncoding());
         props.setHeaders(raw.getMessageProperties().getHeaders());
         props.setHeader("x-dlq-reason", reason);
+        if (error != null) {
+            Integer status = FailureHttpStatus.findServerErrorCode(error);
+            if (status != null) {
+                props.setHeader("x-dlq-http-status", status);
+            }
+        }
 
         Message dlqMsg = MessageBuilder.withBody(raw.getBody()).andProperties(props).build();
         rabbitTemplate.send(rabbitProps.getDlqExchange(), rabbitProps.getDlqRoutingKey(), dlqMsg);

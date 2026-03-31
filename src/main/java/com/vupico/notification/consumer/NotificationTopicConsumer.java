@@ -24,9 +24,12 @@ public class NotificationTopicConsumer {
     private static final Logger log = LoggerFactory.getLogger(NotificationTopicConsumer.class);
 
     private final NotificationMessageHandler messageHandler;
+    private final NotificationDlqReplayService dlqReplayService;
 
-    public NotificationTopicConsumer(NotificationMessageHandler messageHandler) {
+    public NotificationTopicConsumer(
+            NotificationMessageHandler messageHandler, NotificationDlqReplayService dlqReplayService) {
         this.messageHandler = messageHandler;
+        this.dlqReplayService = dlqReplayService;
     }
 
     @RabbitListener(
@@ -47,5 +50,6 @@ public class NotificationTopicConsumer {
         for (Message raw : messages) {
             messageHandler.handle(raw, channel);
         }
+        dlqReplayService.drainDlqFor5xxReplay(channel);
     }
 }

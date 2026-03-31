@@ -42,15 +42,27 @@ public class EmailV1Processor implements NotificationProcessor {
     @Override
     public void process(NotificationMessage message, Object payloadObj) {
         DefectLoggedPayloadV1 payload = (DefectLoggedPayloadV1) payloadObj;
-        if (!NotificationMessageTypes.DEFECT_LOGGED.equalsIgnoreCase(message.getMessageType())) {
+        String messageType = message.getMessageType();
+        if (!isSupportedEmailV1MessageType(messageType)) {
             throw new IllegalArgumentException(
-                    "EmailV1Processor only supports message_type=%s, got %s"
-                            .formatted(NotificationMessageTypes.DEFECT_LOGGED, message.getMessageType()));
+                    "EmailV1Processor unsupported message_type=%s (supported: %s, %s)"
+                            .formatted(
+                                    messageType,
+                                    NotificationMessageTypes.DEFECT_LOGGED,
+                                    NotificationMessageTypes.CHANGE_REQUEST_LOGGED));
         }
         RenderedTemplate rendered =
-                templateService.renderEmail(message.getTenantId(), message.getMessageType(), payload);
+                templateService.renderEmail(message.getTenantId(), messageType, payload);
         String subject = rendered.getSubject();
         String body = rendered.getBody();
         emailSender.sendBatch(message.getTenantId(), message.getAddressList(), subject, body);
+    }
+
+    private static boolean isSupportedEmailV1MessageType(String messageType) {
+        if (messageType == null) {
+            return false;
+        }
+        return NotificationMessageTypes.DEFECT_LOGGED.equalsIgnoreCase(messageType)
+                || NotificationMessageTypes.CHANGE_REQUEST_LOGGED.equalsIgnoreCase(messageType);
     }
 }
