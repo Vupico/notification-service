@@ -24,6 +24,7 @@ public class NotificationDlqReplayService {
     private static final Logger log = LoggerFactory.getLogger(NotificationDlqReplayService.class);
 
     static final String DLQ_HTTP_STATUS_HEADER = "x-dlq-http-status";
+    static final String DLQ_REPLAY_HEADER = "x-dlq-replay";
 
     private final NotificationRabbitProperties rabbitProps;
     private final NotificationMessageHandler messageHandler;
@@ -113,6 +114,7 @@ public class NotificationDlqReplayService {
         return MessageBuilder.fromMessage(raw)
                 .removeHeader("x-dlq-reason")
                 .removeHeader(DLQ_HTTP_STATUS_HEADER)
+                .setHeader(DLQ_REPLAY_HEADER, true)
                 .setHeader("x-retry-count", 0)
                 .build();
     }
