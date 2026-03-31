@@ -1,12 +1,16 @@
 package com.vupico.notification.tenant;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "tenant_configuration")
 public class TenantConfigurationEntity {
 
     @Id
+    private String id;
+
+    @Indexed(unique = true)
     private String tenantId;
 
     private String emailHost;
@@ -23,6 +27,14 @@ public class TenantConfigurationEntity {
 
     public void setTenantId(String tenantId) {
         this.tenantId = tenantId;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getEmailHost() {

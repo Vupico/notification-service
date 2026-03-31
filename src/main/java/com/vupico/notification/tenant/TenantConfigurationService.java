@@ -16,7 +16,7 @@ public class TenantConfigurationService {
             throw new IllegalArgumentException("tenant_id is required");
         }
         return repository
-                .findById(tenantId)
+                .findByTenantId(tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("No tenant_configuration for tenant_id=" + tenantId));
     }
 }

@@ -2,54 +2,41 @@ package com.vupico.notification.service;
 
 import com.vupico.notification.tenant.TenantConfigurationEntity;
 import com.vupico.notification.tenant.TenantConfigurationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Logs outbound email until SES (or another provider) is integrated.
+ * Per-tenant spacing for outbound email based on {@code email_rate_limit} (emails per second).
  */
-@Service
-public class LoggingEmailSender implements EmailSender {
-
-    private static final Logger log = LoggerFactory.getLogger(LoggingEmailSender.class);
+@Component
+public class TenantEmailThrottle {
 
     private final TenantConfigurationService tenantConfigurationService;
     private final ConcurrentMap<String, RateLimitState> rateLimits = new ConcurrentHashMap<>();
 
-    public LoggingEmailSender(TenantConfigurationService tenantConfigurationService) {
+    public TenantEmailThrottle(TenantConfigurationService tenantConfigurationService) {
         this.tenantConfigurationService = tenantConfigurationService;
     }
 
-    @Override
-    public void send(String tenantId, String to, String subject, String body) {
+    public void beforeSend(String tenantId, int emailCount) {
+        if (emailCount <= 0) {
+            return;
+        }
         TenantConfigurationEntity cfg = tenantConfigurationService.require(tenantId);
-        throttle(tenantId, cfg.getEmailRateLimit());
-
-        log.info(
-                "EMAIL host={} tenant={} to={} subject={} bodyChars={}",
-                cfg.getEmailHost(),
-                tenantId,
-                to,
-                subject,
-                body.length());
-        log.debug("EMAIL body:\n{}", body);
-    }
-
-    private void throttle(String tenantId, Integer perSecond) {
+        Integer perSecond = cfg.getEmailRateLimit();
         if (perSecond == null || perSecond <= 0) {
             return;
         }
         long intervalNanos = 1_000_000_000L / Math.max(1, perSecond);
+        long totalWaitNanos = intervalNanos * emailCount;
         RateLimitState state = rateLimits.computeIfAbsent(tenantId, t -> new RateLimitState());
         long sleepNanos;
         synchronized (state) {
             long now = System.nanoTime();
             long next = Math.max(state.nextAllowedNanos, now);
-            state.nextAllowedNanos = next + intervalNanos;
+            state.nextAllowedNanos = next + totalWaitNanos;
             sleepNanos = next - now;
         }
         if (sleepNanos > 0) {
@@ -65,4 +52,3 @@ public class LoggingEmailSender implements EmailSender {
         private long nextAllowedNanos;
     }
 }
-

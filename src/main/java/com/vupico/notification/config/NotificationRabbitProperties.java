@@ -32,6 +32,11 @@ public class NotificationRabbitProperties {
     @NotBlank
     private String dlqRoutingKey;
 
+    /**
+     * When true, do not run a long-lived listener; drain {@link #queue} once and exit (for CronJob).
+     */
+    private boolean cronMode;
+
     public String getTopicExchange() {
         return topicExchange;
     }
@@ -86,5 +91,13 @@ public class NotificationRabbitProperties {
 
     public void setDlqRoutingKey(String dlqRoutingKey) {
         this.dlqRoutingKey = dlqRoutingKey;
+    }
+
+    public boolean isCronMode() {
+        return cronMode;
+    }
+
+    public void setCronMode(boolean cronMode) {
+        this.cronMode = cronMode;
     }
 }
