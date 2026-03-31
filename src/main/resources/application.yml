@@ -17,8 +17,24 @@ spring:
         batch-size: ${NOTIFICATION_BATCH_SIZE:100}
         receive-timeout: ${NOTIFICATION_BATCH_RECEIVE_TIMEOUT_MS:50}
 
+  mail:
+    host: ${SPRING_MAIL_HOST:email-smtp.us-east-1.amazonaws.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:AKIA3XXWYRH3F6RVOUHZ}
+    password: ${SPRING_MAIL_PASSWORD:BC0UVWqCB/63Qmrt789lXwolfVkeeXtoU4HKqryEiVKK}
+    # Used as SMTP "From" address. If omitted, code falls back to `spring.mail.username`.
+    from: ${SPRING_MAIL_FROM:}
+    properties:
+      mail:
+        smtp:
+          auth: ${SPRING_MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:true}
+
 notification:
   rabbit:
+    # true = drain worker queue once and exit (Kubernetes CronJob). false = long-running listener.
+    cron-mode: ${NOTIFICATION_CRON_MODE:true}
     topic-exchange: ${NOTIFICATION_TOPIC_EXCHANGE:notifications.topic}
     queue: ${NOTIFICATION_WORKER_QUEUE:notifications.worker.queue}
     routing-key-pattern: ${NOTIFICATION_ROUTING_PATTERN:ticket.#}
@@ -33,9 +49,3 @@ notification:
 logging:
   level:
     com.vupico.notification: INFO
-
-aws:
-  ses:
-    region: ${AWS_SES_REGION:us-east-1}
-    from-email: ${AWS_SES_FROM_EMAIL:}
-    bulk-max-entries: ${AWS_SES_BULK_MAX_ENTRIES:50}
