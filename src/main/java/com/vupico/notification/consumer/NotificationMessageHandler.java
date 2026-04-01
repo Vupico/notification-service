@@ -65,11 +65,12 @@ public class NotificationMessageHandler {
             }
             if (channelType == NotificationChannelType.EMAIL
                     && (message.getAddressList() == null || message.getAddressList().isEmpty())) {
-                log.info(
-                        "Skipping email notification with empty address_list tenantId={} notificationId={} deliveryTag={}",
+                log.error(
+                        "Empty address_list for email notification tenantId={} notificationId={} deliveryTag={}",
                         message.getTenantId(),
                         message.getNotificationId(),
                         deliveryTag);
+                sendToDlq(raw, "empty address_list");
                 channel.basicAck(deliveryTag, false);
                 return;
             }
