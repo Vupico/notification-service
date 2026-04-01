@@ -63,6 +63,16 @@ public class NotificationMessageHandler {
                 channel.basicAck(deliveryTag, false);
                 return;
             }
+            if (channelType == NotificationChannelType.EMAIL
+                    && (message.getAddressList() == null || message.getAddressList().isEmpty())) {
+                log.info(
+                        "Skipping email notification with empty address_list tenantId={} notificationId={} deliveryTag={}",
+                        message.getTenantId(),
+                        message.getNotificationId(),
+                        deliveryTag);
+                channel.basicAck(deliveryTag, false);
+                return;
+            }
             String typeKey = channelType.getValue();
             String versionKey = message.getPayloadVersion();
             NotificationProcessor processor = processorRegistry.require(typeKey, versionKey);
