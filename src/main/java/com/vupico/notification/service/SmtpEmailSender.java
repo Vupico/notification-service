@@ -12,6 +12,9 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.List;
 
 @Service
@@ -63,8 +66,26 @@ public class SmtpEmailSender implements EmailSender {
             helper.setText(body == null ? "" : body, looksLikeHtml(body));
             mailSender.send(msg);
         } catch (Exception e) {
-            throw new EmailSendException("SMTP send failed: " + e.getMessage(), e);
+            Integer syntheticStatus = isTransientConnectivityFailure(e) ? 503 : null;
+            throw new EmailSendException("SMTP send failed: " + e.getMessage(), e, syntheticStatus);
         }
+    }
+
+    private static boolean isTransientConnectivityFailure(Throwable t) {
+        while (t != null) {
+            if (t instanceof UnknownHostException
+                    || t instanceof ConnectException
+                    || t instanceof SocketTimeoutException) {
+                return true;
+            }
+            String name = t.getClass().getName();
+            // Avoid depending directly on Angus/Jakarta mail impl types.
+            if (name.endsWith(".MailConnectException") || name.endsWith(".MailSendException")) {
+                return true;
+            }
+            t = t.getCause();
+        }
+        return false;
     }
 
     private String resolveFromEmail() {

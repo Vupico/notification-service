@@ -52,7 +52,35 @@ db.email_template.updateOne(
         "- Severity: {{severity}}\n" +
         "- Reported by: {{reported_by}}\n" +
         "- Reported at: {{reported_at}}\n\n" +
+        "{{description}}\n\n" +
         "Please review and take the necessary action at the earliest.\n\n" +
+        "Regards,\n" +
+        "{{reported_by}}",
+      updatedAt: now,
+    },
+    $setOnInsert: {
+      createdAt: now,
+    },
+  },
+  { upsert: true }
+);
+
+db.email_template.updateOne(
+  { tenantId: "tenant_101", templateName: "change_request_logged" },
+  {
+    $set: {
+      subject: "Change Request Logged: {{ticket_id}} — {{defect_title}} ({{severity}})",
+      body:
+        "Dear Team,\n\n" +
+        "A new change request has been logged in {{application_name}}.\n\n" +
+        "Request details\n" +
+        "- Ticket ID: {{ticket_id}}\n" +
+        "- Subject: {{defect_title}}\n" +
+        "- Priority: {{severity}}\n" +
+        "- Raised by: {{reported_by}}\n" +
+        "- Raised at: {{reported_at}}\n\n" +
+        "{{description}}\n\n" +
+        "Please review and process this change request.\n\n" +
         "Regards,\n" +
         "{{reported_by}}",
       updatedAt: now,

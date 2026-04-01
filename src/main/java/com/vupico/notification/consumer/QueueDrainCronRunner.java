@@ -5,7 +5,6 @@ import com.vupico.notification.config.NotificationRabbitProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.ChannelCallback;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.CommandLineRunner;
@@ -14,8 +13,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 /**
  * Kubernetes CronJob mode: drain the worker queue until empty, then exit the JVM with code 0.
@@ -30,16 +27,19 @@ public class QueueDrainCronRunner implements CommandLineRunner {
 
     private final RabbitTemplate rabbitTemplate;
     private final NotificationMessageHandler messageHandler;
+    private final NotificationDlqReplayService dlqReplayService;
     private final NotificationRabbitProperties rabbitProps;
     private final ApplicationContext applicationContext;
 
     public QueueDrainCronRunner(
             RabbitTemplate rabbitTemplate,
             NotificationMessageHandler messageHandler,
+            NotificationDlqReplayService dlqReplayService,
             NotificationRabbitProperties rabbitProps,
             ApplicationContext applicationContext) {
         this.rabbitTemplate = rabbitTemplate;
         this.messageHandler = messageHandler;
+        this.dlqReplayService = dlqReplayService;
         this.rabbitProps = rabbitProps;
         this.applicationContext = applicationContext;
     }
@@ -58,33 +58,14 @@ public class QueueDrainCronRunner implements CommandLineRunner {
                                     log.info("Queue {} is empty; shutdown.", queue);
                                     break;
                                 }
-                                Message msg = toMessage(gr, queue);
+                                Message msg = AmqpGetResponseMessageFactory.toMessage(gr, queue);
                                 messageHandler.handle(msg, channel);
                             }
+                            dlqReplayService.drainDlqFor5xxReplay(channel);
                             return null;
                         });
 
         int code = SpringApplication.exit(applicationContext, () -> 0);
         System.exit(code);
-    }
-
-    private static Message toMessage(GetResponse gr, String queueName) {
-        MessageProperties props = new MessageProperties();
-        props.setDeliveryTag(gr.getEnvelope().getDeliveryTag());
-        props.setReceivedExchange(gr.getEnvelope().getExchange());
-        props.setReceivedRoutingKey(gr.getEnvelope().getRoutingKey());
-        props.setConsumerQueue(queueName);
-        if (gr.getProps() != null) {
-            com.rabbitmq.client.BasicProperties bp = gr.getProps();
-            props.setContentType(bp.getContentType());
-            props.setContentEncoding(bp.getContentEncoding());
-            props.setCorrelationId(bp.getCorrelationId());
-            props.setReplyTo(bp.getReplyTo());
-            Map<String, Object> headers = bp.getHeaders();
-            if (headers != null) {
-                headers.forEach(props::setHeader);
-            }
-        }
-        return new Message(gr.getBody(), props);
     }
 }
