@@ -6,7 +6,11 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
 import java.time.Instant;
 
-/** V1 payload for {@code defect_logged} (and compatible) events. */
+/**
+ * V1 ticket payload for email templates. Used for {@link NotificationMessageTypes#DEFECT_LOGGED} and
+ * {@link NotificationMessageTypes#CHANGE_REQUEST_LOGGED} (same JSON shape from the ticket API; field
+ * {@code defect_title} holds the ticket subject for both).
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class DefectLoggedPayloadV1 {
@@ -17,6 +21,9 @@ public class DefectLoggedPayloadV1 {
     private String reportedBy;
     private Instant reportedAt;
     private String applicationName;
+
+    /** Full defect description from the ticket (optional for email templates). */
+    private String description;
 
     public String getTicketId() {
         return ticketId;
@@ -64,5 +71,13 @@ public class DefectLoggedPayloadV1 {
 
     public void setApplicationName(String applicationName) {
         this.applicationName = applicationName;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

@@ -1,6 +1,9 @@
 spring:
   application:
     name: notification-service
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/dap}
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
@@ -10,23 +13,38 @@ spring:
     listener:
       simple:
         default-requeue-rejected: false
+        consumer-batch-enabled: true
+        batch-size: ${NOTIFICATION_BATCH_SIZE:100}
+        receive-timeout: ${NOTIFICATION_BATCH_RECEIVE_TIMEOUT_MS:50}
+
+  mail:
+    host: ${SPRING_MAIL_HOST:email-smtp.us-east-1.amazonaws.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:AKIA3XXWYRH3F6RVOUHZ}
+    password: ${SPRING_MAIL_PASSWORD:BC0UVWqCB/63Qmrt789lXwolfVkeeXtoU4HKqryEiVKK}
+    # Used as SMTP "From" address. If omitted, code falls back to `spring.mail.username`.
+    from: ${SPRING_MAIL_FROM:notifications@vupico.com}
+    properties:
+      mail:
+        smtp:
+          auth: ${SPRING_MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:true}
 
 notification:
   rabbit:
+    # true = drain worker queue once and exit (Kubernetes CronJob). false = long-running listener.
+    cron-mode: ${NOTIFICATION_CRON_MODE:true}
     topic-exchange: ${NOTIFICATION_TOPIC_EXCHANGE:notifications.topic}
     queue: ${NOTIFICATION_WORKER_QUEUE:notifications.worker.queue}
     routing-key-pattern: ${NOTIFICATION_ROUTING_PATTERN:ticket.#}
+    retry-queue: ${NOTIFICATION_RETRY_QUEUE:notifications.worker.retry.queue}
+    dlq-exchange: ${NOTIFICATION_DLQ_EXCHANGE:notifications.worker.dlx}
+    dlq-queue: ${NOTIFICATION_DLQ_QUEUE:notifications.worker.dlq}
+    dlq-routing-key: ${NOTIFICATION_DLQ_ROUTING_KEY:notifications.worker.dlq}
     listener:
       concurrency: ${NOTIFICATION_LISTENER_CONCURRENCY:1-3}
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      show-details: when_authorized
+      batch-size: ${NOTIFICATION_BATCH_SIZE:100}
 
 logging:
   level:
