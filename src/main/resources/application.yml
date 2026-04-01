@@ -23,7 +23,7 @@ spring:
     username: ${SPRING_MAIL_USERNAME:AKIA3XXWYRH3F6RVOUHZ}
     password: ${SPRING_MAIL_PASSWORD:BC0UVWqCB/63Qmrt789lXwolfVkeeXtoU4HKqryEiVKK}
     # Used as SMTP "From" address. If omitted, code falls back to `spring.mail.username`.
-    from: ${SPRING_MAIL_FROM:}
+    from: ${SPRING_MAIL_FROM:notifications@vupico.com}
     properties:
       mail:
         smtp:
