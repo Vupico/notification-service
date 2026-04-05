@@ -19,6 +19,4 @@ RUN mvn clean install -X -DskipTests
 
 ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar .
 
-ENTRYPOINT ["sh", "-c", "java -javaagent:./opentelemetry-javaagent.jar ${JAVA_OPTS} -jar /src/target/notification-service-0.1.0-SNAPSHOT.jar"
-]
-
+ENTRYPOINT ["sh", "-c", "java -javaagent:./opentelemetry-javaagent.jar ${JAVA_OPTS} -jar /src/target/notification-service-0.1.0-SNAPSHOT.jar"]
