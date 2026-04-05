@@ -9,6 +9,9 @@ ENV MAVEN_SERVER_PASSWORD=$MAVEN_SERVER_PASSWORD
 COPY . /src
 WORKDIR /src
 
+ARG APP_PROP
+RUN echo "${APP_PROP}" > /src/src/main/resources/application.yml
+
 RUN apt update
 RUN apt install -y maven
 COPY settings.xml /root/.m2/settings.xml
