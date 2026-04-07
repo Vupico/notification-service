@@ -2,6 +2,7 @@ package com.vupico.notification.service;
 
 import com.vupico.notification.tenant.TenantConfigurationEntity;
 import com.vupico.notification.tenant.TenantConfigurationService;
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
@@ -44,7 +45,12 @@ public class SmtpEmailSender implements EmailSender {
 
     @Override
     public void sendBatch(
-            String tenantId, List<String> addresses, String subject, String body, String fromDisplayName) {
+            String tenantId,
+            List<String> addresses,
+            String subject,
+            String body,
+            String fromDisplayName,
+            boolean highImportance) {
         if (addresses == null || addresses.isEmpty()) {
             return;
         }
@@ -60,6 +66,9 @@ public class SmtpEmailSender implements EmailSender {
             helper.setTo(addresses.toArray(String[]::new));
             helper.setSubject(subject == null ? "" : subject);
             helper.setText(body == null ? "" : body, looksLikeHtml(body));
+            if (highImportance) {
+                applyHighImportance(helper);
+            }
             mailSender.send(msg);
         } catch (Exception e) {
             Integer syntheticStatus = isTransientConnectivityFailure(e) ? 503 : null;
@@ -82,6 +91,11 @@ public class SmtpEmailSender implements EmailSender {
             t = t.getCause();
         }
         return false;
+    }
+
+    private static void applyHighImportance(MimeMessageHelper helper) throws MessagingException {
+        helper.setPriority(1);
+        helper.getMimeMessage().setHeader("Importance", "high");
     }
 
     private void applyFrom(MimeMessageHelper helper, String fromDisplayName) throws Exception {
