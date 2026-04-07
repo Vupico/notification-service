@@ -59,9 +59,7 @@ public class EmailV1Processor implements NotificationProcessor {
         if (fromDisplay == null || fromDisplay.isBlank()) {
             fromDisplay = payload.getReportedBy();
         }
-        boolean highImportance =
-                NotificationMessageTypes.DEFECT_LOGGED.equalsIgnoreCase(messageType)
-                        && isHighSeverity(payload.getSeverity());
+        boolean highImportance = isHighSeverity(payload.getSeverity());
         emailSender.sendBatch(
                 message.getTenantId(),
                 message.getAddressList(),
