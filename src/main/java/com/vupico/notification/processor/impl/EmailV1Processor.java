@@ -55,7 +55,12 @@ public class EmailV1Processor implements NotificationProcessor {
                 templateService.renderEmail(message.getTenantId(), messageType, payload);
         String subject = rendered.getSubject();
         String body = rendered.getBody();
-        emailSender.sendBatch(message.getTenantId(), message.getAddressList(), subject, body);
+        String fromDisplay = payload.getReportedByDisplay();
+        if (fromDisplay == null || fromDisplay.isBlank()) {
+            fromDisplay = payload.getReportedBy();
+        }
+        emailSender.sendBatch(
+                message.getTenantId(), message.getAddressList(), subject, body, blankToNull(fromDisplay));
     }
 
     private static boolean isSupportedEmailV1MessageType(String messageType) {
@@ -64,5 +69,9 @@ public class EmailV1Processor implements NotificationProcessor {
         }
         return NotificationMessageTypes.DEFECT_LOGGED.equalsIgnoreCase(messageType)
                 || NotificationMessageTypes.CHANGE_REQUEST_LOGGED.equalsIgnoreCase(messageType);
+    }
+
+    private static String blankToNull(String s) {
+        return s == null || s.isBlank() ? null : s;
     }
 }

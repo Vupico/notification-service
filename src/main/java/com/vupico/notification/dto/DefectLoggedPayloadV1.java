@@ -19,6 +19,10 @@ public class DefectLoggedPayloadV1 {
     private String defectTitle;
     private String severity;
     private String reportedBy;
+
+    /** Display label for the {@code From} header, e.g. {@code Full Name (username)} (optional). */
+    private String reportedByDisplay;
+
     private Instant reportedAt;
     private String applicationName;
 
@@ -55,6 +59,14 @@ public class DefectLoggedPayloadV1 {
 
     public void setReportedBy(String reportedBy) {
         this.reportedBy = reportedBy;
+    }
+
+    public String getReportedByDisplay() {
+        return reportedByDisplay;
+    }
+
+    public void setReportedByDisplay(String reportedByDisplay) {
+        this.reportedByDisplay = reportedByDisplay;
     }
 
     public Instant getReportedAt() {
