@@ -29,6 +29,9 @@ public class DefectLoggedPayloadV1 {
     /** Full defect description from the ticket (optional for email templates). */
     private String description;
 
+    /** Deep-link to the ticket details page (optional for email templates). */
+    private String ticketUrl;
+
     public String getTicketId() {
         return ticketId;
     }
@@ -91,5 +94,13 @@ public class DefectLoggedPayloadV1 {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getTicketUrl() {
+        return ticketUrl;
+    }
+
+    public void setTicketUrl(String ticketUrl) {
+        this.ticketUrl = ticketUrl;
     }
 }
