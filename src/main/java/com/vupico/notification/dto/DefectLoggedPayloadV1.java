@@ -19,11 +19,18 @@ public class DefectLoggedPayloadV1 {
     private String defectTitle;
     private String severity;
     private String reportedBy;
+
+    /** Display label for the {@code From} header, e.g. {@code Full Name (username)} (optional). */
+    private String reportedByDisplay;
+
     private Instant reportedAt;
     private String applicationName;
 
     /** Full defect description from the ticket (optional for email templates). */
     private String description;
+
+    /** Deep-link to the ticket details page (optional for email templates). */
+    private String ticketUrl;
 
     public String getTicketId() {
         return ticketId;
@@ -57,6 +64,14 @@ public class DefectLoggedPayloadV1 {
         this.reportedBy = reportedBy;
     }
 
+    public String getReportedByDisplay() {
+        return reportedByDisplay;
+    }
+
+    public void setReportedByDisplay(String reportedByDisplay) {
+        this.reportedByDisplay = reportedByDisplay;
+    }
+
     public Instant getReportedAt() {
         return reportedAt;
     }
@@ -79,5 +94,13 @@ public class DefectLoggedPayloadV1 {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getTicketUrl() {
+        return ticketUrl;
+    }
+
+    public void setTicketUrl(String ticketUrl) {
+        this.ticketUrl = ticketUrl;
     }
 }

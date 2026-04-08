@@ -46,6 +46,7 @@ db.email_template.updateOne(
       body:
         "Dear Team,\n\n" +
         "A new defect has been logged in {{application_name}}.\n\n" +
+        "Ticket URL: {{ticket_url}}\n\n" +
         "Defect Details\n" +
         "- Ticket ID: {{ticket_id}}\n" +
         "- Title: {{defect_title}}\n" +
@@ -73,6 +74,7 @@ db.email_template.updateOne(
       body:
         "Dear Team,\n\n" +
         "A new change request has been logged in {{application_name}}.\n\n" +
+        "Ticket URL: {{ticket_url}}\n\n" +
         "Request details\n" +
         "- Ticket ID: {{ticket_id}}\n" +
         "- Subject: {{defect_title}}\n" +

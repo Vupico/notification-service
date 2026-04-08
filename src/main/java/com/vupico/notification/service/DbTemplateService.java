@@ -25,9 +25,9 @@ public class DbTemplateService implements TemplateService {
     @Override
     public RenderedTemplate renderEmail(String tenantId, String templateName, Object payload) {
         EmailTemplateEntity template = emailTemplateRepository
-                .findByTenantIdAndTemplateName(tenantId, templateName)
+                .findByTemplateName(templateName)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "No email template for tenant_id=%s template_name=%s".formatted(tenantId, templateName)));
+                        "No email template for template_name=%s".formatted(templateName)));
 
         JsonNode payloadNode = objectMapper.valueToTree(payload);
         String subject = apply(template.getSubject(), payloadNode);

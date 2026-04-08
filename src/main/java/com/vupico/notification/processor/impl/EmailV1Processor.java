@@ -55,7 +55,18 @@ public class EmailV1Processor implements NotificationProcessor {
                 templateService.renderEmail(message.getTenantId(), messageType, payload);
         String subject = rendered.getSubject();
         String body = rendered.getBody();
-        emailSender.sendBatch(message.getTenantId(), message.getAddressList(), subject, body);
+        String fromDisplay = payload.getReportedByDisplay();
+        if (fromDisplay == null || fromDisplay.isBlank()) {
+            fromDisplay = payload.getReportedBy();
+        }
+        boolean highImportance = isHighSeverity(payload.getSeverity());
+        emailSender.sendBatch(
+                message.getTenantId(),
+                message.getAddressList(),
+                subject,
+                body,
+                blankToNull(fromDisplay),
+                highImportance);
     }
 
     private static boolean isSupportedEmailV1MessageType(String messageType) {
@@ -64,5 +75,14 @@ public class EmailV1Processor implements NotificationProcessor {
         }
         return NotificationMessageTypes.DEFECT_LOGGED.equalsIgnoreCase(messageType)
                 || NotificationMessageTypes.CHANGE_REQUEST_LOGGED.equalsIgnoreCase(messageType);
+    }
+
+    private static String blankToNull(String s) {
+        return s == null || s.isBlank() ? null : s;
+    }
+
+    /** Matches ticket UI priority {@code High} (payload field {@code severity} is ticket priority). */
+    private static boolean isHighSeverity(String severity) {
+        return severity != null && "high".equalsIgnoreCase(severity.trim());
     }
 }

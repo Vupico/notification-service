@@ -2,6 +2,8 @@ package com.vupico.notification.service;
 
 import com.vupico.notification.tenant.TenantConfigurationEntity;
 import com.vupico.notification.tenant.TenantConfigurationService;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,12 +44,13 @@ public class SmtpEmailSender implements EmailSender {
     }
 
     @Override
-    public void send(String tenantId, String to, String subject, String body) {
-        sendBatch(tenantId, List.of(to), subject, body);
-    }
-
-    @Override
-    public void sendBatch(String tenantId, List<String> addresses, String subject, String body) {
+    public void sendBatch(
+            String tenantId,
+            List<String> addresses,
+            String subject,
+            String body,
+            String fromDisplayName,
+            boolean highImportance) {
         if (addresses == null || addresses.isEmpty()) {
             return;
         }
@@ -59,11 +62,13 @@ public class SmtpEmailSender implements EmailSender {
         try {
             MimeMessage msg = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(msg, true, StandardCharsets.UTF_8.name());
-            String actualFrom = resolveFromEmail();
-            helper.setFrom(actualFrom);
+            applyFrom(helper, fromDisplayName);
             helper.setTo(addresses.toArray(String[]::new));
             helper.setSubject(subject == null ? "" : subject);
             helper.setText(body == null ? "" : body, looksLikeHtml(body));
+            if (highImportance) {
+                applyHighImportance(helper);
+            }
             mailSender.send(msg);
         } catch (Exception e) {
             Integer syntheticStatus = isTransientConnectivityFailure(e) ? 503 : null;
@@ -86,6 +91,20 @@ public class SmtpEmailSender implements EmailSender {
             t = t.getCause();
         }
         return false;
+    }
+
+    private static void applyHighImportance(MimeMessageHelper helper) throws MessagingException {
+        helper.setPriority(1);
+        helper.getMimeMessage().setHeader("Importance", "high");
+    }
+
+    private void applyFrom(MimeMessageHelper helper, String fromDisplayName) throws Exception {
+        String address = resolveFromEmail();
+        if (fromDisplayName != null && !fromDisplayName.isBlank()) {
+            helper.setFrom(new InternetAddress(address, fromDisplayName.trim(), StandardCharsets.UTF_8.name()));
+        } else {
+            helper.setFrom(address);
+        }
     }
 
     private String resolveFromEmail() {
