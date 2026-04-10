@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
-import java.time.Instant;
-
 /**
  * V1 ticket payload for email templates. Used for {@link NotificationMessageTypes#DEFECT_LOGGED} and
  * {@link NotificationMessageTypes#CHANGE_REQUEST_LOGGED} (same JSON shape from the ticket API; field
@@ -23,7 +21,7 @@ public class DefectLoggedPayloadV1 {
     /** Display label for the {@code From} header, e.g. {@code Full Name (username)} (optional). */
     private String reportedByDisplay;
 
-    private Instant reportedAt;
+    private String reportedAt;
     private String applicationName;
 
     /** Full defect description from the ticket (optional for email templates). */
@@ -72,11 +70,11 @@ public class DefectLoggedPayloadV1 {
         this.reportedByDisplay = reportedByDisplay;
     }
 
-    public Instant getReportedAt() {
+    public String getReportedAt() {
         return reportedAt;
     }
 
-    public void setReportedAt(Instant reportedAt) {
+    public void setReportedAt(String reportedAt) {
         this.reportedAt = reportedAt;
     }
 
