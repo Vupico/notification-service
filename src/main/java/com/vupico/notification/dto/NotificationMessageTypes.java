@@ -7,5 +7,7 @@ public final class NotificationMessageTypes {
 
     public static final String DEFECT_LOGGED = "defect_logged";
 
+    public static final String CHANGE_REQUEST_LOGGED = "change_request_logged";
+
     private NotificationMessageTypes() {}
 }

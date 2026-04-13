@@ -1,0 +1,42 @@
+services:
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    expose:
+      - "27017"
+    environment:
+      MONGO_INITDB_DATABASE: notification
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    expose:
+      - "5672"
+      - "15672"
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/notification}
+
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+
+      AWS_SES_ENABLED: "false"
+    depends_on:
+      - mongo
+      - rabbitmq
+    ports:
+      - "8085:8080"
+    restart: unless-stopped
+

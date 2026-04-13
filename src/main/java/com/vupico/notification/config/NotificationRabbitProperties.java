@@ -12,13 +12,30 @@ import org.springframework.validation.annotation.Validated;
 public class NotificationRabbitProperties {
 
     @NotBlank
-    private String topicExchange = "notifications.topic";
+    private String topicExchange;
 
     @NotBlank
-    private String queue = "notifications.worker.queue";
+    private String queue;
 
     @NotBlank
-    private String routingKeyPattern = "ticket.#";
+    private String routingKeyPattern;
+
+    @NotBlank
+    private String retryQueue;
+
+    @NotBlank
+    private String dlqExchange;
+
+    @NotBlank
+    private String dlqQueue;
+
+    @NotBlank
+    private String dlqRoutingKey;
+
+    /**
+     * When true, do not run a long-lived listener; drain {@link #queue} once and exit (for CronJob).
+     */
+    private boolean cronMode;
 
     public String getTopicExchange() {
         return topicExchange;
@@ -42,5 +59,45 @@ public class NotificationRabbitProperties {
 
     public void setRoutingKeyPattern(String routingKeyPattern) {
         this.routingKeyPattern = routingKeyPattern;
+    }
+
+    public String getRetryQueue() {
+        return retryQueue;
+    }
+
+    public void setRetryQueue(String retryQueue) {
+        this.retryQueue = retryQueue;
+    }
+
+    public String getDlqExchange() {
+        return dlqExchange;
+    }
+
+    public void setDlqExchange(String dlqExchange) {
+        this.dlqExchange = dlqExchange;
+    }
+
+    public String getDlqQueue() {
+        return dlqQueue;
+    }
+
+    public void setDlqQueue(String dlqQueue) {
+        this.dlqQueue = dlqQueue;
+    }
+
+    public String getDlqRoutingKey() {
+        return dlqRoutingKey;
+    }
+
+    public void setDlqRoutingKey(String dlqRoutingKey) {
+        this.dlqRoutingKey = dlqRoutingKey;
+    }
+
+    public boolean isCronMode() {
+        return cronMode;
+    }
+
+    public void setCronMode(boolean cronMode) {
+        this.cronMode = cronMode;
     }
 }

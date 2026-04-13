@@ -1,0 +1,61 @@
+name: DEV Deploy Notification service
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  build:
+    name: Build notification-service
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Get notification service dev secret
+        uses: aws-actions/aws-secretsmanager-get-secrets@v2
+        with:
+          secret-ids: |
+            ENV_FILE,dev-dap/notification-service
+          name-transformation: none
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: sdp-platform-backend
+          IMAGE_TAG: notification-service-${{ github.sha }}_${{ github.run_number }}_${{ github.run_attempt }}
+          MVN_GITHUB_PACKAGE_PASSWORD: ${{ secrets.MVN_GITHUB_PACKAGE_PASSWORD }}
+          MVN_GITHUB_PACKAGE_USERNAME: ${{ secrets.MVN_GITHUB_PACKAGE_USERNAME }}
+        run: |
+          docker build --build-arg APP_PROP="$ENV_FILE" --build-arg MAVEN_SERVER_PASSWORD=$MVN_GITHUB_PACKAGE_PASSWORD --build-arg MAVEN_SERVER_USERNAME=$MVN_GITHUB_PACKAGE_USERNAME -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      - name: Checkout argocd-gitops repo
+        uses: actions/checkout@v3
+        with:
+          repository: Vupico/argocd-gitops
+          path: argocd-gitops
+          ref: 'main'
+          fetch-depth: 0
+          ssh-key: ${{secrets.SSH_KEY}}
+      - name: Update deployment yaml
+        working-directory: argocd-gitops
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: sdp-platform-backend
+          IMAGE_TAG: notification-service-${{ github.sha }}_${{ github.run_number }}_${{ github.run_attempt }}
+        run:  |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          sed -i "/^\([[:space:]]*image: \).*/s//\1$ECR_REGISTRY\/$ECR_REPOSITORY:$IMAGE_TAG/" ./dev/argocd-gitops/notification-service/templates/app/Deployment/notification-job.yaml
+          cat ./dev/argocd-gitops/notification-service/templates/app/Deployment/notification-job.yaml
+          git add .
+          git commit -a -m "GithubActions: Automated notification-service image update"
+          git push
