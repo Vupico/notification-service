@@ -81,8 +81,7 @@ public class EmailV1Processor implements NotificationProcessor {
         return s == null || s.isBlank() ? null : s;
     }
 
-    /** Matches ticket UI priority {@code High} (payload field {@code severity} is ticket priority). */
     private static boolean isHighSeverity(String severity) {
-        return severity != null && "high".equalsIgnoreCase(severity.trim());
+        return severity != null && ("high".equalsIgnoreCase(severity.trim()) || "1".equalsIgnoreCase(severity.trim()) || "2".equalsIgnoreCase(severity.trim()));
     }
 }
