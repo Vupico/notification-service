@@ -6,16 +6,26 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 
-@Document(collection = "email_template")
-@CompoundIndex(name = "ux_email_template_tenant_name", def = "{'tenantId': 1, 'templateName': 1}", unique = true)
-public class EmailTemplateEntity {
+@Document(collection = "notification_template")
+@CompoundIndex(
+        name = "ux_notification_template_lookup",
+        def = "{'tenantId': 1, 'notificationType': 1, 'messageType': 1, 'version': 1}",
+        unique = true)
+public class NotificationTemplateEntity {
 
     @Id
     private String id;
 
     private String tenantId;
 
-    private String templateName;
+    /** JSON {@code notification_type}, e.g. {@code email}. */
+    private String notificationType;
+
+    /** Event kind, e.g. {@code defect_logged}. */
+    private String messageType;
+
+    /** Payload / template schema version, e.g. {@code v1}. */
+    private String version;
 
     private String subject;
 
@@ -41,12 +51,28 @@ public class EmailTemplateEntity {
         this.tenantId = tenantId;
     }
 
-    public String getTemplateName() {
-        return templateName;
+    public String getNotificationType() {
+        return notificationType;
     }
 
-    public void setTemplateName(String templateName) {
-        this.templateName = templateName;
+    public void setNotificationType(String notificationType) {
+        this.notificationType = notificationType;
+    }
+
+    public String getMessageType() {
+        return messageType;
+    }
+
+    public void setMessageType(String messageType) {
+        this.messageType = messageType;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
     }
 
     public String getSubject() {
@@ -81,4 +107,3 @@ public class EmailTemplateEntity {
         this.updatedAt = updatedAt;
     }
 }
-
