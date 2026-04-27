@@ -57,14 +57,21 @@ public class NotificationMessageHandler {
         try {
             NotificationMessage message = NotificationMessage.parse(body, objectMapper);
             NotificationChannelType channelType = message.getNotificationType();
-            if (channelType == null || message.getPayloadVersion() == null) {
-                log.error("Missing notification_type or payload_version deliveryTag={}", deliveryTag);
-                sendToDlq(raw, "missing notification_type or payload_version");
+            String payloadVersion = message.getPayloadVersion();
+            String messageType = message.getMessageType();
+            if (channelType == null
+                    || payloadVersion == null
+                    || payloadVersion.isBlank()
+                    || messageType == null
+                    || messageType.isBlank()) {
+                log.error(
+                        "Missing notification_type, message_type, or payload_version deliveryTag={}",
+                        deliveryTag);
+                sendToDlq(raw, "missing notification_type, message_type, or payload_version");
                 channel.basicAck(deliveryTag, false);
                 return;
             }
-            if (channelType == NotificationChannelType.EMAIL
-                    && (message.getAddressList() == null || message.getAddressList().isEmpty())) {
+            if (message.getAddressList() == null || message.getAddressList().isEmpty()) {
                 log.error(
                         "Empty address_list for email notification tenantId={} notificationId={} deliveryTag={}",
                         message.getTenantId(),
@@ -74,17 +81,14 @@ public class NotificationMessageHandler {
                 channel.basicAck(deliveryTag, false);
                 return;
             }
-            String typeKey = channelType.getValue();
-            String versionKey = message.getPayloadVersion();
-            NotificationProcessor processor = processorRegistry.require(typeKey, versionKey);
-            if (message.getPayload() == null || message.getPayload().isNull()) {
+            NotificationProcessor processor = processorRegistry.require(channelType);
+            if (message.getPayload() == null) {
                 log.error("Missing payload deliveryTag={}", deliveryTag);
                 sendToDlq(raw, "missing payload");
                 channel.basicAck(deliveryTag, false);
                 return;
             }
-            Object typedPayload = processor.deserialize(message.getPayload());
-            processor.process(message, typedPayload);
+            processor.process(message);
             log.info(
                     "Processed notification tenantId={} notificationId={} processor={} deliveryTag={}",
                     message.getTenantId(),
