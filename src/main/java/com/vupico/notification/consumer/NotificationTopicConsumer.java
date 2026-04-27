@@ -1,6 +1,7 @@
 package com.vupico.notification.consumer;
 
 import com.rabbitmq.client.Channel;
+import com.vupico.notification.monitoring.MonitoringComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
@@ -18,6 +19,7 @@ import java.util.List;
  * (use {@link QueueDrainCronRunner} for Kubernetes CronJob).
  */
 @Component
+@MonitoringComponent("notification-consumer")
 @ConditionalOnProperty(prefix = "notification.rabbit", name = "cron-mode", havingValue = "false", matchIfMissing = true)
 public class NotificationTopicConsumer {
 

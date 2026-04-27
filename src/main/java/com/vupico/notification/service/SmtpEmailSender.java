@@ -55,8 +55,7 @@ public class SmtpEmailSender implements EmailSender {
             return;
         }
 
-        TenantConfigurationEntity cfg = tenantConfigurationService.require(tenantId);
-        log.debug("SMTP send tenant={} hostHint={} recipients={}", tenantId, cfg.getEmailHost(), addresses.size());
+        log.debug("SMTP send tenant={} recipients={}", tenantId, addresses);
 
         tenantEmailThrottle.beforeSend(tenantId, addresses.size());
         try {

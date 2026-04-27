@@ -1,46 +1,65 @@
 package com.vupico.notification.processor;
 
+import com.vupico.notification.dto.NotificationChannelType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
+/**
+ * Resolves the {@link NotificationProcessor} for a message using {@code notification_type} only.
+ * Payload shape and optional fields are handled inside each processor.
+ */
 @Component
 public class NotificationProcessorRegistry {
 
-    private final Map<String, NotificationProcessor> byKey = new ConcurrentHashMap<>();
+    private final Map<String, NotificationProcessor> byNotificationType;
 
     public NotificationProcessorRegistry(List<NotificationProcessor> processors) {
-        for (NotificationProcessor p : processors) {
-            String key = key(p.getNotificationType(), p.getPayloadVersion());
-            NotificationProcessor existing = byKey.putIfAbsent(key, p);
-            if (existing != null) {
-                throw new IllegalStateException(
-                        "Duplicate processor for key=%s: %s vs %s"
-                                .formatted(key, existing.getClass().getName(), p.getClass().getName()));
-            }
+        this.byNotificationType =
+                Map.copyOf(
+                        processors.stream()
+                                .collect(
+                                        Collectors.toMap(
+                                                p -> normalizeNotificationType(p.getNotificationType()),
+                                                p -> p,
+                                                (a, b) -> {
+                                                    throw new IllegalStateException(
+                                                            "Duplicate processor for notification_type=%s: %s vs %s"
+                                                                    .formatted(
+                                                                            a.getNotificationType(),
+                                                                            a.getClass().getName(),
+                                                                            b.getClass().getName()));
+                                                })));
+    }
+
+    /**
+     * Looks up a processor by {@link NotificationChannelType} (same as JSON {@code notification_type}).
+     */
+    public NotificationProcessor require(NotificationChannelType channelType) {
+        if (channelType == null) {
+            throw new UnsupportedNotificationProcessorException(null);
         }
+        return require(channelType.getValue());
     }
 
-    public Optional<NotificationProcessor> find(String notificationType, String payloadVersion) {
-        if (notificationType == null || payloadVersion == null) {
-            return Optional.empty();
+    /**
+     * Looks up a processor by {@code notification_type} string (case-insensitive).
+     */
+    public NotificationProcessor require(String notificationType) {
+        if (notificationType == null || notificationType.isBlank()) {
+            throw new UnsupportedNotificationProcessorException(String.valueOf(notificationType));
         }
-        return Optional.ofNullable(byKey.get(key(notificationType, payloadVersion)));
+        NotificationProcessor p = byNotificationType.get(normalizeNotificationType(notificationType));
+        if (p == null) {
+            throw new UnsupportedNotificationProcessorException(notificationType);
+        }
+        return p;
     }
 
-    public NotificationProcessor require(String notificationType, String payloadVersion) {
-        return find(notificationType, payloadVersion)
-                .orElseThrow(() -> new UnsupportedNotificationProcessorException(
-                        notificationType, payloadVersion));
-    }
-
-    private static String key(String notificationType, String payloadVersion) {
-        return notificationType.trim().toLowerCase(Locale.ROOT)
-                + "|"
-                + payloadVersion.trim().toLowerCase(Locale.ROOT);
+    private static String normalizeNotificationType(String notificationType) {
+        return notificationType.trim().toLowerCase(Locale.ROOT);
     }
 }

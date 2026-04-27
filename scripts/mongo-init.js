@@ -8,12 +8,12 @@ print(`Using database: ${dbName}`);
 
 // 1) Collections (explicit)
 db.createCollection("tenant_configuration");
-db.createCollection("email_template");
+db.createCollection("notification_template");
 
 // 2) Indexes
-db.email_template.createIndex(
-  { tenantId: 1, templateName: 1 },
-  { name: "ux_email_template_tenant_name", unique: true }
+db.notification_template.createIndex(
+  { tenantId: 1, notificationType: 1, messageType: 1, version: 1 },
+  { name: "ux_notification_template_lookup", unique: true }
 );
 
 db.tenant_configuration.createIndex(
@@ -25,7 +25,7 @@ db.tenant_configuration.createIndex(
 const now = new Date();
 
 db.tenant_configuration.updateOne(
-  { tenantId: "tenant_101" },
+  { tenantId: "CA_3ygaHfx252" },
   {
     $set: {
       tenantId: "tenant_101",
@@ -33,13 +33,20 @@ db.tenant_configuration.updateOne(
       emailRateLimit: 10,
       retryCount: 3,
       retryInterval: 10,
+      "properties.allowedSeverities": [1, 2, 3, 4, 5],
+      "properties.severityToSlaHours": { "1": 24, "2": 48, "3": 72, "4": 96, "5": 120 },
     },
   },
   { upsert: true }
 );
 
-db.email_template.updateOne(
-  { tenantId: "tenant_101", templateName: "defect_logged" },
+db.notification_template.updateOne(
+  {
+    tenantId: "CA_3ygaHfx252",
+    notificationType: "email",
+    messageType: "defect_logged",
+    version: "v1",
+  },
   {
     $set: {
       subject: "Defect Logged: {{ticket_id}} — {{defect_title}} ({{severity}})",
@@ -66,8 +73,13 @@ db.email_template.updateOne(
   { upsert: true }
 );
 
-db.email_template.updateOne(
-  { tenantId: "tenant_101", templateName: "change_request_logged" },
+db.notification_template.updateOne(
+  {
+    tenantId: "CA_3ygaHfx252",
+    notificationType: "email",
+    messageType: "change_request_logged",
+    version: "v1",
+  },
   {
     $set: {
       subject: "Change Request Logged: {{ticket_id}} — {{defect_title}} ({{severity}})",
@@ -94,5 +106,30 @@ db.email_template.updateOne(
   { upsert: true }
 );
 
-print("Done. Seeded tenant_configuration + email_template.");
+db.notification_template.updateOne(
+  {
+    tenantId: "CA_3ygaHfx252",
+    notificationType: "email",
+    messageType: "defect_updated",
+    version: "v1",
+  },
+  {
+    $set: {
+      subject: "Defect Updated: {{ticket_id}}",
+      body:
+        "A defect ticket has been updated.\n\n" +
+        "Ticket URL: {{ticket_url}}\n" +
+        "Updated by: {{update_by}}\n" +
+        "Timestamp: {{timestamp}}\n\n" +
+        "Update:\n" +
+        "{{update}}\n",
+      updatedAt: now,
+    },
+    $setOnInsert: {
+      createdAt: now,
+    },
+  },
+  { upsert: true }
+);
 
+print("Done. Seeded tenant_configuration + notification_template.");
