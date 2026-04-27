@@ -46,6 +46,17 @@ notification:
       concurrency: ${NOTIFICATION_LISTENER_CONCURRENCY:1-3}
       batch-size: ${NOTIFICATION_BATCH_SIZE:100}
 
+# VUPI monitoring client (AOP: MonitoringControllerAspect, MonitoringRabbitListenerAspect)
+monitoring:
+  client:
+    integration: notification-service
+    domains:
+      notification: Notification
+      notification-consumer: Notification
+    services:
+      notification: Notification
+      notification-consumer: NotificationConsumer
+
 logging:
   level:
     com.vupico.notification: INFO
