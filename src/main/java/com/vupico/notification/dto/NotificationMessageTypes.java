@@ -11,5 +11,11 @@ public final class NotificationMessageTypes {
 
     public static final String DEFECT_UPDATED = "defect_updated";
 
+    public static final String SURVEY_ASSIGNED = "survey_assigned";
+
+    public static final String SURVEY_COMPLETED = "survey_completed";
+
+    public static final String SURVEY_REMINDER = "survey_reminder";
+
     private NotificationMessageTypes() {}
 }

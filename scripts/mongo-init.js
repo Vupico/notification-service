@@ -132,4 +132,95 @@ db.notification_template.updateOne(
   { upsert: true }
 );
 
+// Survey email templates
+// Available placeholders per messageType:
+//   survey_assigned:  supplier_name, survey_name, survey_url, start_date, end_date, sent_by
+//   survey_completed: survey_name, supplier_code, survey_url
+//   survey_reminder:  supplier_name, survey_name, survey_url, end_date
+
+db.notification_template.updateOne(
+  {
+    tenantId: "CA_3ygaHfx252",
+    notificationType: "email",
+    messageType: "survey_assigned",
+    version: "v1",
+  },
+  {
+    $set: {
+      subject: "Action Required: Survey Assigned – {{survey_name}}",
+      body:
+        "Dear {{supplier_name}},\n\n" +
+        "A new survey has been assigned to you by {{sent_by}}.\n\n" +
+        "Survey:     {{survey_name}}\n" +
+        "Start Date: {{start_date}}\n" +
+        "Deadline:   {{end_date}}\n\n" +
+        "Please complete it at your earliest convenience:\n" +
+        "{{survey_url}}\n\n" +
+        "If you have any questions, please contact your administrator.\n\n" +
+        "Regards,\n" +
+        "Vupico Team",
+      updatedAt: now,
+    },
+    $setOnInsert: {
+      createdAt: now,
+    },
+  },
+  { upsert: true }
+);
+
+db.notification_template.updateOne(
+  {
+    tenantId: "CA_3ygaHfx252",
+    notificationType: "email",
+    messageType: "survey_completed",
+    version: "v1",
+  },
+  {
+    $set: {
+      subject: "Survey Completed – {{survey_name}}",
+      body:
+        "Hello,\n\n" +
+        "Supplier {{supplier_code}} has completed the survey \"{{survey_name}}\".\n\n" +
+        "You can review the submitted responses here:\n" +
+        "{{survey_url}}\n\n" +
+        "Regards,\n" +
+        "Vupico Team",
+      updatedAt: now,
+    },
+    $setOnInsert: {
+      createdAt: now,
+    },
+  },
+  { upsert: true }
+);
+
+db.notification_template.updateOne(
+  {
+    tenantId: "CA_3ygaHfx252",
+    notificationType: "email",
+    messageType: "survey_reminder",
+    version: "v1",
+  },
+  {
+    $set: {
+      subject: "Reminder: Survey Deadline Approaching – {{survey_name}}",
+      body:
+        "Dear {{supplier_name}},\n\n" +
+        "This is a friendly reminder that the deadline for your survey is approaching.\n\n" +
+        "Survey:   {{survey_name}}\n" +
+        "Deadline: {{end_date}}\n\n" +
+        "Please complete it before the deadline:\n" +
+        "{{survey_url}}\n\n" +
+        "If you have already submitted, please disregard this message.\n\n" +
+        "Regards,\n" +
+        "Vupico Team",
+      updatedAt: now,
+    },
+    $setOnInsert: {
+      createdAt: now,
+    },
+  },
+  { upsert: true }
+);
+
 print("Done. Seeded tenant_configuration + notification_template.");
