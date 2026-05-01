@@ -37,7 +37,8 @@ notification:
     cron-mode: ${NOTIFICATION_CRON_MODE:true}
     topic-exchange: ${NOTIFICATION_TOPIC_EXCHANGE:notifications.topic}
     queue: ${NOTIFICATION_WORKER_QUEUE:notifications.worker.queue}
-    routing-key-pattern: ${NOTIFICATION_ROUTING_PATTERN:#}
+    routing-key-pattern: ${NOTIFICATION_ROUTING_PATTERN:ticket.#}
+    survey-routing-key-pattern: ${NOTIFICATION_SURVEY_ROUTING_PATTERN:survey.#}
     retry-queue: ${NOTIFICATION_RETRY_QUEUE:notifications.worker.retry.queue}
     dlq-exchange: ${NOTIFICATION_DLQ_EXCHANGE:notifications.worker.dlx}
     dlq-queue: ${NOTIFICATION_DLQ_QUEUE:notifications.worker.dlq}

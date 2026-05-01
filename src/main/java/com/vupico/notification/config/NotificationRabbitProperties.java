@@ -21,6 +21,9 @@ public class NotificationRabbitProperties {
     private String routingKeyPattern;
 
     @NotBlank
+    private String surveyRoutingKeyPattern;
+
+    @NotBlank
     private String retryQueue;
 
     @NotBlank
@@ -59,6 +62,14 @@ public class NotificationRabbitProperties {
 
     public void setRoutingKeyPattern(String routingKeyPattern) {
         this.routingKeyPattern = routingKeyPattern;
+    }
+
+    public String getSurveyRoutingKeyPattern() {
+        return surveyRoutingKeyPattern;
+    }
+
+    public void setSurveyRoutingKeyPattern(String surveyRoutingKeyPattern) {
+        this.surveyRoutingKeyPattern = surveyRoutingKeyPattern;
     }
 
     public String getRetryQueue() {

@@ -67,4 +67,13 @@ public class RabbitMqTopicConfig {
                 .to(notificationTopicExchange)
                 .with(props.getRoutingKeyPattern());
     }
+
+    @Bean
+    public Binding notificationSurveyBinding(
+            Queue notificationWorkerQueue,
+            TopicExchange notificationTopicExchange) {
+        return BindingBuilder.bind(notificationWorkerQueue)
+                .to(notificationTopicExchange)
+                .with(props.getSurveyRoutingKeyPattern());
+    }
 }
