@@ -46,7 +46,6 @@ notification:
     listener:
       concurrency: ${NOTIFICATION_LISTENER_CONCURRENCY:1-3}
       batch-size: ${NOTIFICATION_BATCH_SIZE:100}
-
 logging:
   level:
     com.vupico.notification: INFO
